@@ -1,0 +1,84 @@
+{
+  "name": "seoul-bike-{JOB_NAME}-{TIMESTAMP}",
+  "virtualClusterId": "{VIRTUAL_CLUSTER_ID}",
+  "executionRoleArn": "arn:aws:iam::{ACCOUNT_ID}:role/{ROLE_NAME}",
+  "releaseLabel": "emr-7.8.0-latest",
+  "jobDriver": {
+    "sparkSubmitJobDriver": {
+      "entryPoint": "s3://{SCRIPTS_BUCKET}/spark-jobs/{JOB_NAME}-analysis.py",
+      "sparkSubmitParameters": "--conf spark.executor.instances=2 --conf spark.executor.memory=1g --conf spark.executor.cores=1 --conf spark.driver.cores=1 --conf spark.driver.memory=1g --conf spark.dynamicAllocation.enabled=true --conf spark.dynamicAllocation.maxExecutors=4 --conf spark.dynamicAllocation.minExecutors=1 --conf spark.dynamicAllocation.initialExecutors=2 --conf spark.sql.adaptive.enabled=true --conf spark.sql.adaptive.coalescePartitions.enabled=true --conf spark.sql.adaptive.coalescePartitions.minPartitionNum=1 --conf spark.sql.shuffle.partitions=4 --conf spark.default.parallelism=2 --conf spark.app.s3tables.namespace=bike_db --conf spark.app.s3tables.table=bike_rental_data --conf spark.app.s3tables.bucket={TABLE_BUCKET_NAME}"
+    }
+  },
+  "configurationOverrides": {
+    "applicationConfiguration": [
+      {
+        "classification": "spark-defaults",
+        "properties": {
+          "spark.sql.extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+          "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog",
+          "spark.sql.catalog.spark_catalog.type": "hive",
+          "spark.sql.catalog.iceberg": "org.apache.iceberg.spark.SparkCatalog",
+          "spark.sql.catalog.iceberg.catalog-impl": "org.apache.iceberg.aws.glue.GlueCatalog",
+          "spark.sql.catalog.iceberg.warehouse": "s3://{TABLE_BUCKET_NAME}/",
+          "spark.sql.catalog.iceberg.io-impl": "org.apache.iceberg.aws.s3.S3FileIO",
+          "spark.hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.WebIdentityTokenCredentialsProvider",
+          "spark.kubernetes.executor.podNamePrefix": "{JOB_NAME}-executor",
+          "spark.kubernetes.driver.podNamePrefix": "{JOB_NAME}-driver",
+          "spark.hadoop.hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory",
+          "spark.sql.catalogImplementation": "hive",
+          "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
+          "spark.executor.instances": "2",
+          "spark.executor.memory": "1g",
+          "spark.executor.cores": "1",
+          "spark.driver.memory": "1g",
+          "spark.driver.cores": "1",
+          "spark.dynamicAllocation.enabled": "true",
+          "spark.dynamicAllocation.maxExecutors": "4",
+          "spark.dynamicAllocation.minExecutors": "1",
+          "spark.dynamicAllocation.initialExecutors": "2",
+          "spark.sql.adaptive.enabled": "true",
+          "spark.sql.adaptive.coalescePartitions.enabled": "true",
+          "spark.sql.adaptive.coalescePartitions.minPartitionNum": "1",
+          "spark.sql.adaptive.coalescePartitions.initialPartitionNum": "1",
+          "spark.sql.shuffle.partitions": "4",
+          "spark.default.parallelism": "2",
+          "spark.kubernetes.executor.limit.cores": "1",
+          "spark.kubernetes.executor.request.cores": "500m",
+          "spark.kubernetes.driver.limit.cores": "1",
+          "spark.kubernetes.driver.request.cores": "500m",
+          "spark.sql.fgac.systemDriverTimeout": "600s",
+          "spark.sql.fgac.systemDriverConnectionTimeout": "300s",
+          "spark.ui.prometheus.enabled": "true",
+          "spark.executor.processTreeMetrics.enabled": "true",
+          "spark.kubernetes.driver.annotation.prometheus.io/scrape": "true",
+          "spark.kubernetes.driver.annotation.prometheus.io/path": "/metrics/executors/prometheus/",
+          "spark.kubernetes.driver.annotation.prometheus.io/port": "4040",
+          "spark.kubernetes.driver.service.annotation.prometheus.io/scrape": "true",
+          "spark.kubernetes.driver.service.annotation.prometheus.io/path": "/metrics/driver/prometheus/",
+          "spark.kubernetes.driver.service.annotation.prometheus.io/port": "4040",
+          "spark.metrics.conf.*.sink.prometheusServlet.class": "org.apache.spark.metrics.sink.PrometheusServlet",
+          "spark.metrics.conf.*.sink.prometheusServlet.path": "/metrics/driver/prometheus/",
+          "spark.metrics.conf.master.sink.prometheusServlet.path": "/metrics/master/prometheus/",
+          "spark.metrics.conf.applications.sink.prometheusServlet.path": "/metrics/applications/prometheus/"
+        }
+      }
+    ],
+    "monitoringConfiguration": {
+      "persistentAppUI": "ENABLED",
+      "cloudWatchMonitoringConfiguration": {
+        "logGroupName": "/aws/emr-containers/jobs",
+        "logStreamNamePrefix": "{JOB_NAME}"
+      },
+      "s3MonitoringConfiguration": {
+        "logUri": "s3://{RESULTS_BUCKET}/logs/"
+      }
+    }
+  },
+  "jobTemplateId": "{JOB_TEMPLATE_ID}",
+  "jobTemplateParameters": {
+    "sparkJobName": "{JOB_NAME}",
+    "sparkJobRole": "{ROLE_NAME}",
+    "sparkJobNamespace": "emr-{JOB_NAME}",
+    "sparkJobServiceAccount": "{SERVICE_ACCOUNT}"
+  }
+}

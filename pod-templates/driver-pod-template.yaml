@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+spec:
+  # Node selector for proper scheduling
+  nodeSelector:
+    kubernetes.io/os: linux
+  
+  # Containers section - MUST use hardcoded name 'spark-kubernetes-driver'
+  containers:
+  - name: spark-kubernetes-driver  # Hardcoded name required by EMR
+    env:
+      - name: LAKE_FORMATION_ENABLED
+        value: "true"
+      - name: EMR_CONTAINER_ROLE
+        value: "SPARK_DRIVER"
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "1"
+      limits:
+        memory: "1Gi" 
+        cpu: "1"
+    # Volume mounts - avoiding predefined EMR volume names
+    volumeMounts:
+      - name: spark-local-dir
+        mountPath: /var/spark-data
+        
+  # Volumes section - avoiding predefined EMR volume names
+  volumes:
+    - name: spark-local-dir
+      emptyDir: {}
+      
+  # Restart policy
+  restartPolicy: Never
+  
+  # Termination grace period
+  terminationGracePeriodSeconds: 30

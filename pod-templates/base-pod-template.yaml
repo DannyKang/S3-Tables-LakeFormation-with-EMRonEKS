@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spark-{JOB_NAME}-template
+  namespace: emr-{JOB_NAME}
+  labels:
+    app: spark-{JOB_NAME}
+    version: "1.0"
+    component: spark-executor
+    spark-role: executor
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics/executors/prometheus/"
+    prometheus.io/port: "4040"
+spec:
+  serviceAccountName: {SERVICE_ACCOUNT}
+  restartPolicy: Never
+  nodeSelector:
+    karpenter.sh/nodepool: spark-compute-optimized
+    node.kubernetes.io/instance-type: "c5.large"
+  tolerations:
+    - key: spark-compute-optimized
+      operator: Equal
+      value: "true"
+      effect: NoSchedule
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: karpenter.sh/nodepool
+            operator: In
+            values:
+            - spark-compute-optimized
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: spark-role
+              operator: In
+              values:
+              - executor
+          topologyKey: kubernetes.io/hostname
+  containers:
+  - name: spark-kubernetes-executor
+    image: public.ecr.aws/emr-on-eks/spark/emr-7.8.0:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+        ephemeral-storage: "2Gi"
+      limits:
+        memory: "1Gi"
+        cpu: "1"
+        ephemeral-storage: "4Gi"
+    env:
+    - name: SPARK_CONF_DIR
+      value: /opt/spark/conf
+    - name: AWS_REGION
+      value: {REGION}
+    - name: AWS_DEFAULT_REGION
+      value: {REGION}
+    - name: SPARK_LOCAL_DIRS
+      value: /tmp/spark-local
+    volumeMounts:
+    - name: spark-local-dir
+      mountPath: /tmp/spark-local
+    - name: spark-conf-volume
+      mountPath: /opt/spark/conf
+    securityContext:
+      runAsUser: 999
+      runAsGroup: 1000
+      fsGroup: 1000
+      runAsNonRoot: true
+  volumes:
+  - name: spark-local-dir
+    emptyDir:
+      sizeLimit: 2Gi
+  - name: spark-conf-volume
+    emptyDir: {}
+  terminationGracePeriodSeconds: 30
+  dnsPolicy: ClusterFirst
+  schedulerName: default-scheduler

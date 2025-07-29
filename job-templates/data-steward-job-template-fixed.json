@@ -1,0 +1,59 @@
+{
+  "name": "seoul-bike-data-steward-20250730-fix-iceberg",
+  "virtualClusterId": "dcuw80j9p4nh1cxomjb06b6mo",
+  "executionRoleArn": "arn:aws:iam::769403660383:role/LF_DataStewardRole",
+  "releaseLabel": "emr-7.7.0-latest",
+  "jobDriver": {
+    "sparkSubmitJobDriver": {
+      "entryPoint": "s3://seoul-bike-analytics-scripts-769403660383/spark-jobs/data-steward-analysis.py",
+      "sparkSubmitParameters": "--conf spark.executor.instances=2 --conf spark.executor.memory=1g --conf spark.executor.cores=1 --conf spark.driver.cores=1 --conf spark.driver.memory=1g --jars s3://seoul-bike-analytics-scripts-769403660383/jars/iceberg-spark-runtime-3.5_2.12-1.6.1.jar,s3://seoul-bike-analytics-scripts-769403660383/jars/iceberg-aws-1.6.1.jar"
+    }
+  },
+  "configurationOverrides": {
+    "applicationConfiguration": [
+      {
+        "classification": "spark-defaults",
+        "properties": {
+          "spark.sql.extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
+          "spark.sql.catalog.s3tablesbucket": "org.apache.iceberg.spark.SparkCatalog",
+          "spark.sql.catalog.s3tablesbucket.catalog-impl": "software.amazon.s3tables.iceberg.S3TablesCatalog",
+          "spark.sql.catalog.s3tablesbucket.warehouse": "arn:aws:s3tables:ap-northeast-2:769403660383:bucket/seoul-bike-demo-769403660383-20250729-071720",
+          "spark.sql.catalog.s3tablesbucket.client.region": "ap-northeast-2",
+          "spark.sql.defaultCatalog": "s3tablesbucket",
+          "spark.kubernetes.driver.podTemplateFile": "s3://seoul-bike-analytics-scripts-769403660383/pod-templates/driver-pod-template.yaml",
+          "spark.kubernetes.executor.podTemplateFile": "s3://seoul-bike-analytics-scripts-769403660383/pod-templates/executor-pod-template.yaml",
+          "spark.hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.WebIdentityTokenCredentialsProvider",
+          "spark.hadoop.aws.credentials.provider": "com.amazonaws.auth.WebIdentityTokenCredentialsProvider",
+          "spark.hadoop.fs.s3a.endpoint.region": "ap-northeast-2",
+          "spark.hadoop.fs.s3.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem",
+          "spark.hadoop.aws.region": "ap-northeast-2",
+          "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
+          "spark.executor.instances": "2",
+          "spark.executor.memory": "1g",
+          "spark.executor.cores": "1",
+          "spark.driver.memory": "1g",
+          "spark.driver.cores": "1",
+          "spark.jars": "s3://seoul-bike-analytics-scripts-769403660383/jars/iceberg-spark-runtime-3.5_2.12-1.6.1.jar,s3://seoul-bike-analytics-scripts-769403660383/jars/iceberg-aws-1.6.1.jar"
+        }
+      }
+    ],
+    "monitoringConfiguration": {
+      "persistentAppUI": "ENABLED",
+      "cloudWatchMonitoringConfiguration": {
+        "logGroupName": "/aws/emr-containers/jobs",
+        "logStreamNamePrefix": "data-steward-fix"
+      },
+      "s3MonitoringConfiguration": {
+        "logUri": "s3://seoul-bike-analytics-results-769403660383/logs/"
+      }
+    }
+  },
+  "tags": {
+    "LakeFormationAuthorizedCaller": "EMRonEKSEngine",
+    "JobType": "LakeFormationFGAC",
+    "Role": "LF_DataStewardRole",
+    "Namespace": "emr-data-team-a",
+    "CatalogType": "S3Tables",
+    "Fix": "IcebergJARs"
+  }
+}
