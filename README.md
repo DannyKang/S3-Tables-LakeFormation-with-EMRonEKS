@@ -126,7 +126,7 @@ MarketingPartner: 10개 컬럼 (birth_year 제외)
 ```bash
 # 1. 프로젝트 클론
 git clone https://github.com/DannyKang/S3-Tables-LakeFormation-with-EMRonEKS
-cd lake-formation-fgac-demo
+cd S3-Tables-LakeFormation-with-EMRonEKS
 
 # 2. AWS CLI 설정 (ap-northeast-2 리전 사용)
 aws configure set region ap-northeast-2
