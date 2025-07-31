@@ -12,25 +12,25 @@
 ```mermaid
 graph TB
     subgraph "Data Source"
-        CSV[seoul-bike-sample-100k.csv<br/>100,000 records]
+        CSV["seoul-bike-sample-100k.csv<br/>100,000 records"]
     end
     
     subgraph "S3 Tables"
-        ST[seoul-bike-demo-{ACCOUNT_ID}<br/>Apache Iceberg Format<br/>bike_db.bike_rental_data]
+        ST["seoul-bike-demo-{ACCOUNT_ID}<br/>Apache Iceberg Format<br/>bike_db.bike_rental_data"]
     end
     
     subgraph "Lake Formation"
-        LF[FGAC Policies]
-        RF[Row Filters]
-        CF[Column Filters]
-        CF2[Cell Filters]
+        LF["FGAC Policies"]
+        RF["Row Filters"]
+        CF["Column Filters"]
+        CF2["Cell Filters"]
     end
     
     subgraph "EMR on EKS"
-        DS[DataSteward Role]
-        GA[GangnamAnalyst Role]
-        OP[Operation Role]
-        MP[Marketing Partner Role]
+        DS["DataSteward Role"]
+        GA["GangnamAnalyst Role"]
+        OP["Operation Role"]
+        MP["Marketing Partner Role"]
     end
     
     CSV --> ST
@@ -113,7 +113,7 @@ MarketingPartner: 10개 컬럼 (birth_year 제외)
 ### 실제 비즈니스 시나리오
 
 | 역할 | 접근 구역 | 연령대 | 접근 컬럼 | 개인정보 | 목적 | 예상 결과 |
-|------|-----------|--------|-----------|----------|------|-----------|
+|------|-----------|--------|-----------|----------|------|-----------| 
 | **LF_DataStewardRole** | 전체 구 | 전체 | 전체 11개 | ✅ | 데이터 품질 관리 | 100,000건 |
 | **LF_GangnamAnalyticsRole** | 강남구만 | 전체 | 10개 (birth_year 제외) | ❌ | 강남구 분석 | ~3,000건 |
 | **LF_OperationRole** | 전체 구 | 전체 | 9개 (운영 관련만) | ❌ | 운영 최적화 | 100,000건 |
@@ -125,7 +125,7 @@ MarketingPartner: 10개 컬럼 (birth_year 제외)
 
 ```bash
 # 1. 프로젝트 클론
-git clone https://github.com/DannyKang/lake-formation-fgac-demo.git
+git clone https://github.com/DannyKang/S3-Tables-LakeFormation-with-EMRonEKS
 cd lake-formation-fgac-demo
 
 # 2. AWS CLI 설정 (ap-northeast-2 리전 사용)
